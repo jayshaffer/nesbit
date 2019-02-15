@@ -11,7 +11,7 @@ using namespace std;
 int main(int argc, char* argv[]){
     const int PRG_INC = 16384;
     const int CHR_INC = 8192;
-    std::ifstream file("test.nes");
+    std::ifstream file("donkeykong.nes");
     char* data = 0;
     file.seekg(0, ios::end);
     int size = file.tellg();

@@ -32,7 +32,7 @@ namespace CPU6502{
             return RAM[address - 0x800];
         }
         else if(address >= 0x8000){
-            return ROM::rd(address);
+            return ROM::rd(address - 0x8000);
         }
         return NULL;
     }
@@ -45,11 +45,10 @@ namespace CPU6502{
         A = 0;
         X = 0;
         Y = 0;
-        PC = read(0xFFFC);
+        PC = (read(0xFFFD) << 8) | read(0xFFFC);
         while(true){
-            std::cout << std::hex << PC << std::endl;
             exec();
-            usleep(1000000);
+            usleep(100000);
         }
     }
 
