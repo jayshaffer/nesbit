@@ -208,7 +208,13 @@ namespace CPU6502{
     const uint8_t PLA = 0x69;
     const uint8_t PHP = 0x08;
     const uint8_t PLP = 0x28;
+    extern uint16_t PC;
 
-    void exec(uint8_t instruction);
+    void exec();
+
+    void ADC_I_OP();
+    void ADC_ZP_OP();
+
+    void reset();
 
 };

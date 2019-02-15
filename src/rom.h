@@ -1,5 +1,6 @@
 #include <stdint.h>
 
 namespace ROM{
-    void rd(uint16_t address);
+    uint8_t rd(uint16_t address);
+    void fill(char data[], int length);
 }
