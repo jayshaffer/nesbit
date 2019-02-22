@@ -64,27 +64,40 @@ namespace CPU6502{
             std::cout << std::hex << "PPU:" << "0x" << 0;
             std::cout << std::endl;
         #endif
-        
-        // switch(instruction){
-        //     case ADC_I:
-        //         ADC_I_OP();
-        //         break;
-        //     case ADC_ZP:
-        //         ADC_ZP_OP();
-        //         break;
-
-        // }
         PC++;
     }
 
-    void ADC_I_OP(){
+    void abs(void (*operation)(uint16_t address)){
+        uint16_t address = (read(++PC) << 8) | read(++PC);
+        operation(address);
     }
 
-    void ADC_ZP_OP(){
-        
+    void zp(void (*operation)(uint16_t address)){
+        uint16_t address = read(++PC); 
+        operation(address);
     }
 
-    void ADC_ZP_X_OP(){
+    void zpx(void (*operation)(uint16_t address)){
+        uint16_t result = read(++PC) + X;
+        operation((uint16_t)(uint8_t) result);
+    }
 
+    void zpy(void (*operation)(uint16_t address)){
+        uint16_t result = read(++PC) + Y;
+        operation((uint16_t)(uint8_t) result);
+    }
+
+    void absx(void (*operation)(uint16_t address)){
+        uint16_t address = (read(++PC) << 8) | read(++PC);
+        operation(address + X);
+    }
+
+    void absy(void (*operation)(uint16_t address)){
+        uint16_t address = (read(++PC) << 8) | read(++PC);
+        operation(address + Y);
+    }
+    
+    void immediate(void (*operation)(uint16_t address)){
+        operation(++PC);
     }
 }
