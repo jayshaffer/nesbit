@@ -211,9 +211,24 @@ namespace CPU6502{
     extern uint16_t PC;
 
     void exec();
+    void adc(uint16_t address);
+    void an(uint16_t address);
+    void adj_N();
+    void adj_Z();
+    void adj_C(bool neg);
+    void abs(void (*operation)(uint16_t address));
+    void zp(void (*operation)(uint16_t address));
+    void zpx(void (*operation)(uint16_t address));
+    void zpy(void (*operation)(uint16_t address));
+    void absx(void (*operation)(uint16_t address));
+    void absy(void (*operation)(uint16_t address));
+    void immediate(void (*operation)(uint16_t address));
+    void indirect(void (*operation)(uint16_t address));
+    void indexIndirX(void (*operation)(uint16_t address));
+    void indexIndirY(void (*operation)(uint16_t address));
+    void indirIndexX(void (*operation)(uint16_t address));
+    void indirIndexY(void (*operation)(uint16_t address));
 
-    void ADC_I_OP();
-    void ADC_ZP_OP();
 
     void reset();
 

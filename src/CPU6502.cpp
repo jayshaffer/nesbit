@@ -64,11 +64,51 @@ namespace CPU6502{
             std::cout << std::hex << "PPU:" << "0x" << 0;
             std::cout << std::endl;
         #endif
+        void (*const adc_p)(uint16_t address) = adc;
+        void (*const and_p)(uint16_t address) = an;
+        switch(PC){
+            case ADC_I:
+                immediate(adc_p);
+        }
         PC++;
     }
 
+    void adc(uint16_t address){
+        uint8_t m = read(address);
+        bool neg = m >> 7 & 0x01;
+        uint16_t A = m + A + C_flag;
+        adj_C(neg);
+        adj_Z();
+        adj_N();
+    }
+
+    void an(uint16_t address){
+        A = A & read(address);
+        adj_Z();
+        adj_N();
+    }
+
+    void asl(uint16_t address){
+        A = A << 1;
+        adj_C();
+    }
+    
+    void adj_N(){
+        N_flag = (A >> 7) & 0x01; 
+    }
+
+    void adj_Z(){
+        Z_flag = A & 0x0000;
+    }
+
+    void adj_C(bool neg){
+        C_flag = ((A >> 7) & 0x01) & !neg;
+    }
+
     void abs(void (*operation)(uint16_t address)){
-        uint16_t address = (read(++PC) << 8) | read(++PC);
+        uint8_t first = read(++PC);
+        uint8_t second = read(++PC);
+        uint16_t address = (first << 8) << second; 
         operation(address);
     }
 
@@ -88,16 +128,57 @@ namespace CPU6502{
     }
 
     void absx(void (*operation)(uint16_t address)){
-        uint16_t address = (read(++PC) << 8) | read(++PC);
+        uint8_t first = read(++PC);
+        uint8_t second = read(++PC);
+        uint16_t address = (first << 8) | second;
         operation(address + X);
     }
 
     void absy(void (*operation)(uint16_t address)){
-        uint16_t address = (read(++PC) << 8) | read(++PC);
+        uint8_t first = read(++PC);
+        uint8_t second = read(++PC);
+        uint16_t address = (first << 8) | second;
         operation(address + Y);
     }
     
     void immediate(void (*operation)(uint16_t address)){
         operation(++PC);
     }
+
+    void indirect(void (*operation)(uint16_t address)){
+        uint8_t first = read(++PC);
+        uint8_t second = read(++PC);
+        uint16_t indAddress = (first << 8) | second;
+        uint16_t address = read(indAddress + 1) << 8 | read(indAddress);
+        operation(address);
+    }
+
+    void indexIndirX(void (*operation)(uint16_t address)){
+        uint16_t indAddress = read(++PC) + X; 
+        uint16_t address = read(indAddress + 1) << 8 | read(indAddress);
+        operation(address);
+    }
+
+    void indexIndirY(void (*operation)(uint16_t address)){
+        uint16_t indAddress = read(++PC) + Y; 
+        uint16_t address = read(indAddress + 1) << 8 | read(indAddress);
+        operation(address);
+    }
+
+    void indirIndexX(void (*operation)(uint16_t address)){
+        uint8_t first = read(++PC);
+        uint8_t second = read(++PC);
+        uint16_t indAddress = (first << 8) | second; 
+        uint16_t address = read(indAddress + 1) << 8 | read(indAddress);
+        operation(address + X);
+    }
+
+    void indirIndexY(void (*operation)(uint16_t address)){
+        uint8_t first = read(++PC);
+        uint8_t second = read(++PC);
+        uint16_t indAddress = (first << 8) | second; 
+        uint16_t address = read(indAddress + 1) << 8 | read(indAddress);
+        operation(address + Y);
+    }
+
 }
