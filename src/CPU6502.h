@@ -208,7 +208,11 @@ namespace CPU6502{
     const uint8_t PLA = 0x69;
     const uint8_t PHP = 0x08;
     const uint8_t PLP = 0x28;
-    extern uint16_t PC;
+    uint16_t PC = 0;
+    uint8_t A;
+    uint8_t X;
+    uint8_t Y;
+    uint16_t SP;
 
     void exec();
     void adc(uint16_t address);
@@ -228,7 +232,6 @@ namespace CPU6502{
     void indexIndirY(void (*operation)(uint16_t address));
     void indirIndexX(void (*operation)(uint16_t address));
     void indirIndexY(void (*operation)(uint16_t address));
-
 
     void reset();
 

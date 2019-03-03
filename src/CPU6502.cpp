@@ -9,11 +9,6 @@
 #define DEBUG
 
 namespace CPU6502{
-    uint8_t A;
-    uint8_t X;
-    uint8_t Y;
-    uint16_t PC = 0;
-    uint16_t SP;
     bool C_flag = 0;
     bool Z_flag = 0;
     bool I_flag = 0;
@@ -32,7 +27,7 @@ namespace CPU6502{
             return RAM[address - 0x800];
         }
         else if(address >= 0x8000){
-            return ROM::rd(address - 0x8000);
+            return ROM::rd((uint16_t) address - 0x8000);
         }
         return NULL;
     }
@@ -45,7 +40,18 @@ namespace CPU6502{
         A = 0;
         X = 0;
         Y = 0;
+        C_flag = 0;
+        Z_flag = 0;
+        I_flag = 0;
+        D_flag = 0;
+        B_flag = 0;
+        V_flag = 0;
+        N_flag = 0;
         PC = (read(0xFFFD) << 8) | read(0xFFFC);
+    }
+    
+    void power(){
+        reset();
         while(true){
             exec();
             usleep(100000);
@@ -90,7 +96,7 @@ namespace CPU6502{
 
     void asl(uint16_t address){
         A = A << 1;
-        adj_C();
+        adj_C(false);
     }
     
     void adj_N(){

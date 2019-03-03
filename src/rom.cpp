@@ -11,6 +11,10 @@ namespace ROM{
         return prg[address];
     };
 
+    void load(std::string filepath){
+
+    }
+
     void fill(char data[], int length){
         std::cout << length << std::endl;
         for(int i = 0; i < length; i++){
