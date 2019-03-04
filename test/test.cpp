@@ -1,24 +1,8 @@
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch.h"
-#include "CPU6502.cpp"
-
-const int PRG_INC = 16384;
-const int CHR_INC = 8192;
-
-void loadTestRom(){
-    std::ifstream file("donkeykong.nes");
-    char* data = 0;
-    file.seekg(0, ios::end);
-    int size = file.tellg();
-    file.seekg(0, ios::beg);
-    data = new char[size + 1];
-    data[size] = '\0';
-    file.read(data, size);
-    int prgSize = PRG_INC * (int) data[4];
-    int chrSize = CHR_INC * (int) data[5];
-    ROM::fill(data + 16, prgSize);
-    CPU6502::reset();
-}
+#include "CPU6502.h"
+#include "rom.h"
+#include "string"
 
 TEST_CASE( "CPU is reset", "" ) {
     CPU6502::X = 1;
@@ -45,6 +29,26 @@ TEST_CASE( "CPU is reset", "" ) {
 }
 
 TEST_CASE( "ADC adds with carry"){
-    CPU6502::adc(0xFFFF);
-    REQUIRE( );
+    REQUIRE( CPU6502::A == 0);
+    REQUIRE( CPU6502::C_flag == 0);
+    CPU6502::A = 1;
+    CPU6502::adc(0xFF);
+    //REQUIRE(CPU6502::A == 0);
+    //REQUIRE( CPU6502::C_flag == 1);
+}
+
+TEST_CASE( "Accumulator AND"){
+    REQUIRE( CPU6502::A == 0);
+    CPU6502::A = 0xff;
+    CPU6502::an(0xf0);
+    REQUIRE( CPU6502::A == 0xf0);
+    REQUIRE( CPU6502::Z_flag == 0);
+    REQUIRE( CPU6502::N_flag == 1);
+}
+
+TEST_CASE( "ASL"){
+    CPU6502::A = 0xff;
+    REQUIRE( CPU6502::A == 0xf0);
+    REQUIRE( CPU6502::Z_flag == 0);
+    REQUIRE( CPU6502::N_flag == 1);
 }

@@ -200,7 +200,6 @@ namespace CPU6502{
     const uint8_t STA_IND_X = 0x81;
     const uint8_t STA_IND_Y = 0x91;
 
-
     //Stack
     const uint8_t TXS = 0x9A;
     const uint8_t TSX = 0xBA;
@@ -208,30 +207,38 @@ namespace CPU6502{
     const uint8_t PLA = 0x69;
     const uint8_t PHP = 0x08;
     const uint8_t PLP = 0x28;
-    uint16_t PC = 0;
-    uint8_t A;
-    uint8_t X;
-    uint8_t Y;
-    uint16_t SP;
+    extern uint16_t PC;
+    extern uint8_t A;
+    extern uint8_t X;
+    extern uint8_t Y;
+    extern uint16_t SP;
+    extern bool C_flag;
+    extern bool Z_flag;
+    extern bool I_flag;
+    extern bool D_flag;
+    extern bool B_flag;
+    extern bool V_flag;
+    extern bool N_flag;
 
     void exec();
-    void adc(uint16_t address);
-    void an(uint16_t address);
-    void adj_N();
-    void adj_Z();
-    void adj_C(bool neg);
-    void abs(void (*operation)(uint16_t address));
-    void zp(void (*operation)(uint16_t address));
-    void zpx(void (*operation)(uint16_t address));
-    void zpy(void (*operation)(uint16_t address));
-    void absx(void (*operation)(uint16_t address));
-    void absy(void (*operation)(uint16_t address));
-    void immediate(void (*operation)(uint16_t address));
-    void indirect(void (*operation)(uint16_t address));
-    void indexIndirX(void (*operation)(uint16_t address));
-    void indexIndirY(void (*operation)(uint16_t address));
-    void indirIndexX(void (*operation)(uint16_t address));
-    void indirIndexY(void (*operation)(uint16_t address));
+    void adc(uint8_t m);
+    void an(uint8_t m);
+    void asl(uint8_t* m);
+    void adj_N(uint8_t m);
+    void adj_Z(uint8_t m);
+    void adj_C(uint8_t m, bool neg);
+    void abs(void (*operation)(uint8_t m));
+    void zp(void (*operation)(uint8_t m));
+    void zpx(void (*operation)(uint8_t m));
+    void zpy(void (*operation)(uint8_t m));
+    void absx(void (*operation)(uint8_t m));
+    void absy(void (*operation)(uint8_t m));
+    void immediate(void (*operation)(uint8_t m));
+    void indirect(void (*operation)(uint8_t m));
+    void indexIndirX(void (*operation)(uint8_t m));
+    void indexIndirY(void (*operation)(uint8_t m));
+    void indirIndexX(void (*operation)(uint8_t m));
+    void indirIndexY(void (*operation)(uint8_t m));
 
     void reset();
 

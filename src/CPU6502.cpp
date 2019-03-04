@@ -9,6 +9,11 @@
 #define DEBUG
 
 namespace CPU6502{
+    uint16_t PC = 0;
+    uint8_t A = 0;
+    uint8_t X = 0;
+    uint8_t Y = 0;
+    uint16_t SP = 0;
     bool C_flag = 0;
     bool Z_flag = 0;
     bool I_flag = 0;
@@ -16,7 +21,6 @@ namespace CPU6502{
     bool B_flag = 0;
     bool V_flag = 0;
     bool N_flag = 0;
-
     uint8_t RAM[0x800];
 
     uint8_t read(uint16_t address){
@@ -70,8 +74,8 @@ namespace CPU6502{
             std::cout << std::hex << "PPU:" << "0x" << 0;
             std::cout << std::endl;
         #endif
-        void (*const adc_p)(uint16_t address) = adc;
-        void (*const and_p)(uint16_t address) = an;
+        void (*const adc_p)(uint8_t m) = adc;
+        void (*const and_p)(uint8_t m) = an;
         switch(PC){
             case ADC_I:
                 immediate(adc_p);
@@ -79,36 +83,36 @@ namespace CPU6502{
         PC++;
     }
 
-    void adc(uint16_t address){
-        uint8_t m = read(address);
+    void adc(uint8_t m){
         bool neg = m >> 7 & 0x01;
-        uint16_t A = m + A + C_flag;
-        adj_C(neg);
-        adj_Z();
-        adj_N();
+        A = m + A + C_flag;
+        adj_C(A, neg);
+        adj_Z(A);
+        adj_N(A);
     }
 
-    void an(uint16_t address){
-        A = A & read(address);
-        adj_Z();
-        adj_N();
+    void an(uint8_t m){
+        A = A & m;
+        adj_Z(A);
+        adj_N(A);
     }
 
-    void asl(uint16_t address){
-        A = A << 1;
-        adj_C(false);
+    void asl(uint8_t* m){
+        *m = *m << 1;
+        adj_C(*m, false);
     }
     
-    void adj_N(){
-        N_flag = (A >> 7) & 0x01; 
+    void adj_N(uint8_t m){
+        N_flag = (m >> 7) == 0x01; 
     }
 
-    void adj_Z(){
-        Z_flag = A & 0x0000;
+    void adj_Z(uint8_t m){
+        Z_flag = m == 0;
     }
 
-    void adj_C(bool neg){
-        C_flag = ((A >> 7) & 0x01) & !neg;
+    void adj_C(uint8_t m, bool neg){
+        std::cout << std::hex << (int) (m >> 7) << std::endl;
+        C_flag = ((m >> 7) & 0x01) & !neg;
     }
 
     void abs(void (*operation)(uint16_t address)){
@@ -147,44 +151,44 @@ namespace CPU6502{
         operation(address + Y);
     }
     
-    void immediate(void (*operation)(uint16_t address)){
+    void immediate(void (*operation)(uint8_t m)){
         operation(++PC);
     }
 
-    void indirect(void (*operation)(uint16_t address)){
+    void indirect(void (*operation)(uint8_t m)){
         uint8_t first = read(++PC);
         uint8_t second = read(++PC);
         uint16_t indAddress = (first << 8) | second;
-        uint16_t address = read(indAddress + 1) << 8 | read(indAddress);
-        operation(address);
+        uint8_t m = read(indAddress + 1) << 8 | read(indAddress);
+        operation(m);
     }
 
-    void indexIndirX(void (*operation)(uint16_t address)){
+    void indexIndirX(void (*operation)(uint8_t m)){
         uint16_t indAddress = read(++PC) + X; 
-        uint16_t address = read(indAddress + 1) << 8 | read(indAddress);
-        operation(address);
+        uint16_t m = read(read(indAddress + 1) << 8 | read(indAddress));
+        operation(m);
     }
 
-    void indexIndirY(void (*operation)(uint16_t address)){
+    void indexIndirY(void (*operation)(uint8_t m)){
         uint16_t indAddress = read(++PC) + Y; 
-        uint16_t address = read(indAddress + 1) << 8 | read(indAddress);
-        operation(address);
+        uint16_t m = read(read(indAddress + 1) << 8 | read(indAddress));
+        operation(m);
     }
 
-    void indirIndexX(void (*operation)(uint16_t address)){
+    void indirIndexX(void (*operation)(uint8_t m)){
         uint8_t first = read(++PC);
         uint8_t second = read(++PC);
         uint16_t indAddress = (first << 8) | second; 
-        uint16_t address = read(indAddress + 1) << 8 | read(indAddress);
-        operation(address + X);
+        uint16_t m = read(read(indAddress + 1) << 8 | read(indAddress) + X);
+        operation(m);
     }
 
-    void indirIndexY(void (*operation)(uint16_t address)){
+    void indirIndexY(void (*operation)(uint8_t m)){
         uint8_t first = read(++PC);
         uint8_t second = read(++PC);
         uint16_t indAddress = (first << 8) | second; 
-        uint16_t address = read(indAddress + 1) << 8 | read(indAddress);
-        operation(address + Y);
+        uint16_t m = read(read(indAddress + 1) << 8 | read(indAddress) + Y);
+        operation(m);
     }
 
 }
