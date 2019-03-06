@@ -47,8 +47,11 @@ TEST_CASE( "Accumulator AND"){
 }
 
 TEST_CASE( "ASL"){
-    CPU6502::A = 0xff;
-    REQUIRE( CPU6502::A == 0xf0);
+    uint8_t m = 0x0f;
+    uint8_t* m_p = &m;
+    CPU6502::reset();
+    CPU6502::asl(m_p);
+    REQUIRE( *m_p == 30);
     REQUIRE( CPU6502::Z_flag == 0);
-    REQUIRE( CPU6502::N_flag == 1);
+    REQUIRE( CPU6502::N_flag == 0);
 }
