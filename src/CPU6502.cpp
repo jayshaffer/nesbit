@@ -5,6 +5,7 @@
 #include <iostream>
 #include "rom.h"
 #include <unistd.h>
+#include <stack>
 
 #define DEBUG
 
@@ -21,8 +22,10 @@ namespace CPU6502{
     bool B_flag = 0;
     bool V_flag = 0;
     bool N_flag = 0;
+    bool O_flag = 0;
     bool INTERRUPT_flag = 0;
     uint8_t RAM[0x800];
+    uint8_t stack[0x1FF]; 
 
     uint8_t read(uint16_t address){
         if(address < 0x800){
@@ -109,24 +112,74 @@ namespace CPU6502{
         adj_C(*m, isNeg);
     }
 
-    void bcc(){
-
+    void bcc(uint8_t m){
+        if(C_flag){return;}
+        PC += m; 
     }
 
-    void bit(){
+    void bcs(uint8_t m){
+        if(!C_flag){return;}
+        PC += m; 
+    }
 
+    void beq(uint8_t m){
+        if(!Z_flag){return;}
+        PC += m; 
+    }
+
+    void bmi(uint8_t m){
+        if(!N_flag){return;}
+        PC += m;
+    }
+
+    void bne(uint8_t m){
+        if(Z_flag){return;}
+        PC += m; 
+    }
+    
+    void bpl(uint8_t m){
+        if(N_flag){return;}
+        PC += m;
+    }
+
+    void bvc(uint8_t m){
+        if(O_flag){return;}
+        PC += m;
+    }
+
+    void bvs(uint8_t m){
+        if(!O_flag){return;}
+        PC += m;
+    }
+
+    void bmi(){
+        if(!O_flag){return;}
+    }
+
+    void bit(uint8_t m){
+        uint8_t result = A | m;
+        N_flag = ((result >> 7) & 0x01);
+        V_flag = ((result >> 6) & 0x01);
+        Z_flag = result == 0;
     }
 
     void brk(){
-        return;
+        stack[SP++] = PC >> 8;
+        stack[SP++] = PC << 8;
+        php();
+        PC = ((read(0xFFFF) << 8) | read(0xFFFE));
     }
 
     void clc(){
         C_flag = 0;
     }
 
+    void cld(){
+        D_flag = 0;
+    }
+
     void cli(){
-        INTERRUPT_flag = 0;
+        I_flag = 0;
     }
 
     void clv(){
@@ -241,25 +294,126 @@ namespace CPU6502{
     }
 
     void pha(){
+        stack[SP] = A;
+        SP++;
     }
 
     void php(){
+        uint8_t byte = 0;
+        byte = (byte | (N_flag << 7)); 
+        byte = (byte | (O_flag << 6)); 
+        byte = (byte | (1 << 5));
+        byte = (byte | (1 << 4));
+        byte = (byte | (D_flag << 3));
+        byte = (byte | (I_flag << 2));
+        byte = (byte | (Z_flag << 1));
+        byte = (byte | (C_flag << 0));
+        stack[SP] = byte;
+        SP++;
     }
 
     void pla(){
+        SP--;
+        A = stack[SP];
+        Z_flag = A == 0;
+        N_flag = neg(A);
     }
     
     void plp(){
+        uint8_t status = stack[SP]; 
+        N_flag = ((status >> 7) & 0x01);
+        O_flag = ((status >> 6) & 0x01);
+        D_flag = ((status >> 3) & 0x01);
+        I_flag = ((status >> 2) & 0x01);
+        Z_flag = ((status >> 1) & 0x01);
+        C_flag = ((status >> 0) & 0x01);
+        SP--;
     }
 
-    void rol(){
+    void rol(uint8_t* m){
+        uint8_t newCarry = (*m >> 7);
+        *m = ((*m << 1) | C_flag);
+        C_flag = newCarry;
+        Z_flag = A == 0; 
+        N_flag = neg(*m);
     }
 
-    void ror(){
+    void ror(uint8_t* m){
+        uint8_t newCarry = (*m << 7);
+        *m = ((*m >> 1) | (C_flag << 7));
+        C_flag = newCarry;
+        Z_flag = A == 0; 
+        N_flag = neg(*m);
     }
 
     void adj_N(uint8_t m){
         N_flag = (m >> 7) == 0x01; 
+    }
+
+    void rti(){
+
+    }
+
+    void rts(){
+        
+    }
+
+    void sbc(){
+
+    }
+
+    void sec(){
+        C_flag = 1;
+    }
+
+    void sed(){
+        D_flag = 1;
+    }
+
+    void sei(){
+        I_flag = 1;
+    }
+
+    void sta(uint8_t* m){
+        *m = A;
+    }
+
+    void stx(uint8_t* m){
+        *m = X;
+    }
+
+    void sty(uint8_t* m){
+        *m = Y;
+    }
+
+    void tax(){
+        X = A;
+        Z_flag = X == 0;
+        N_flag = neg(X);
+    }
+
+    void tay(){
+        Y = A;
+        Z_flag = Y == 0;
+        N_flag = neg(Y);
+    }
+
+    void tsx(){
+    }
+
+    void txa(){
+        A = X;
+        Z_flag = A == 0;
+        N_flag = neg(A);
+    }
+
+    void txs(){
+    }
+
+    void tya(){
+        A = Y;
+        Z_flag = A == 0;
+        N_flag = neg(A);
     }
 
     void adj_Z(uint8_t m){
