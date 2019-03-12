@@ -216,9 +216,9 @@ namespace CPU6502{
     extern bool Z_flag;
     extern bool I_flag;
     extern bool D_flag;
-    extern bool B_flag;
     extern bool V_flag;
     extern bool N_flag;
+    extern uint8_t stack[];
 
     void exec();
     void adc(uint8_t m);
@@ -235,10 +235,10 @@ namespace CPU6502{
     void absy(void (*operation)(uint8_t m));
     void immediate(void (*operation)(uint8_t m));
     void indirect(void (*operation)(uint8_t m));
-    void indexIndirX(void (*operation)(uint8_t m));
-    void indexIndirY(void (*operation)(uint8_t m));
-    void indirIndexX(void (*operation)(uint8_t m));
-    void indirIndexY(void (*operation)(uint8_t m));
+    void indirectX(void (*operation)(uint8_t m));
+    void indirectY(void (*operation)(uint8_t m));
+    void relative(void (*operation)(uint8_t m));
+    void jsr(void (*operation)(uint16_t m));
 
     void reset();
     void bcc(uint8_t m);
@@ -282,7 +282,7 @@ namespace CPU6502{
     void ror(uint8_t* m);
     void rti();
     void rts();
-    void sbc();
+    void sbc(uint8_t m);
     void sec();
     void sed();
     void sei();

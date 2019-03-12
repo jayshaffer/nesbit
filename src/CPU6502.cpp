@@ -22,10 +22,14 @@ namespace CPU6502{
     bool B_flag = 0;
     bool V_flag = 0;
     bool N_flag = 0;
-    bool O_flag = 0;
     bool INTERRUPT_flag = 0;
     uint8_t RAM[0x800];
     uint8_t stack[0x1FF]; 
+    void (*const adc_p)(uint8_t m) = adc;
+    void (*const and_p)(uint8_t m) = an;
+    void (*const ora_p)(uint8_t m) = ora;
+    void (*const asl_p)(uint8_t* m) = asl;
+    void (*const jsr_p)(uint16_t m) = jsr;
 
     uint8_t read(uint16_t address){
         if(address < 0x800){
@@ -52,9 +56,9 @@ namespace CPU6502{
         Z_flag = 0;
         I_flag = 0;
         D_flag = 0;
-        B_flag = 0;
         V_flag = 0;
         N_flag = 0;
+        std::fill_n(stack, 0x1ff, 0);
         INTERRUPT_flag = 0;
         PC = (read(0xFFFD) << 8) | read(0xFFFC);
     }
@@ -79,11 +83,42 @@ namespace CPU6502{
             std::cout << std::hex << "PPU:" << "0x" << 0;
             std::cout << std::endl;
         #endif
-        void (*const adc_p)(uint8_t m) = adc;
-        void (*const and_p)(uint8_t m) = an;
         switch(PC){
-            case ADC_I:
-                immediate(adc_p);
+            case 0x01:
+                indirect(adc_p);
+                break;
+            case 0x05:
+                zp(ora_p);
+                break;
+            case 0x06:
+                zp(asl_p);
+                break;
+            case 0x08:
+                php();
+                break;
+            case 0x09:
+                immediate(ora_p);
+                break;
+            case 0x10:
+                relative(bpl);
+                break;
+            case 0x11:
+                indirectY(ora_p);
+                break;
+            case 0x15:
+                zpx(ora_p);
+                break;
+            case 0x16:
+                zpx(asl_p);
+                break;
+            case 0x18:
+                clc();
+                break;
+            case 0x19:
+                absy(ora_p);
+                break;
+            case 0x20:
+                abs(jsr_p);
         }
         PC++;
     }
@@ -93,9 +128,10 @@ namespace CPU6502{
     }
 
     void adc(uint8_t m){
-        bool isNeg = neg(m); 
-        A = m + A + C_flag;
-        adj_C(A, isNeg);
+        uint16_t sum = m + A + C_flag;
+        C_flag = (sum > 0xFF);
+        V_flag = ~(A ^ m) & (A ^ sum) & 0x80;
+        A = (uint8_t) sum;
         adj_Z(A);
         adj_N(A);
     }
@@ -143,17 +179,17 @@ namespace CPU6502{
     }
 
     void bvc(uint8_t m){
-        if(O_flag){return;}
+        if(V_flag){return;}
         PC += m;
     }
 
     void bvs(uint8_t m){
-        if(!O_flag){return;}
+        if(!V_flag){return;}
         PC += m;
     }
 
     void bmi(){
-        if(!O_flag){return;}
+        if(!V_flag){return;}
     }
 
     void bit(uint8_t m){
@@ -294,40 +330,41 @@ namespace CPU6502{
     }
 
     void pha(){
-        stack[SP] = A;
-        SP++;
+        stack[SP++] = A;
     }
 
     void php(){
         uint8_t byte = 0;
         byte = (byte | (N_flag << 7)); 
-        byte = (byte | (O_flag << 6)); 
+        byte = (byte | (V_flag << 6)); 
         byte = (byte | (1 << 5));
         byte = (byte | (1 << 4));
         byte = (byte | (D_flag << 3));
         byte = (byte | (I_flag << 2));
         byte = (byte | (Z_flag << 1));
         byte = (byte | (C_flag << 0));
-        stack[SP] = byte;
-        SP++;
+        stack[SP++] = byte;
     }
 
     void pla(){
-        SP--;
-        A = stack[SP];
+        A = stack[--SP];
         Z_flag = A == 0;
         N_flag = neg(A);
     }
     
     void plp(){
-        uint8_t status = stack[SP]; 
-        N_flag = ((status >> 7) & 0x01);
-        O_flag = ((status >> 6) & 0x01);
-        D_flag = ((status >> 3) & 0x01);
-        I_flag = ((status >> 2) & 0x01);
-        Z_flag = ((status >> 1) & 0x01);
-        C_flag = ((status >> 0) & 0x01);
-        SP--;
+        uint8_t flags = stack[--SP];
+        N_flag = flags & 0x80;
+        V_flag = flags & 0x40;
+        D_flag = flags & 0x08;
+        I_flag = flags & 0x04;
+        Z_flag = flags & 0x02;
+        C_flag = flags & 0x01;
+    }
+    
+    void jsr(uint16_t m){
+        stack[SP++] = PC - 1;
+        PC = m;
     }
 
     void rol(uint8_t* m){
@@ -351,15 +388,16 @@ namespace CPU6502{
     }
 
     void rti(){
-
+        plp(); 
+        uint8_t PC = stack[--SP];
     }
 
     void rts(){
-        
+       PC = stack[--SP]; 
     }
 
-    void sbc(){
-
+    void sbc(uint8_t m){
+        adc(~m);
     }
 
     void sec(){
@@ -399,6 +437,7 @@ namespace CPU6502{
     }
 
     void tsx(){
+        X = SP;
     }
 
     void txa(){
@@ -408,6 +447,7 @@ namespace CPU6502{
     }
 
     void txs(){
+        SP = X;
     }
 
     void tya(){
@@ -421,33 +461,32 @@ namespace CPU6502{
     }
 
     void adj_C(uint8_t m, bool isNeg){
-        std::cout << std::hex << (int) (m >> 7) << std::endl;
         C_flag = neg(m) & !isNeg;
     }
 
-    void abs(void (*operation)(uint16_t address)){
+    void abs(void (*operation)(uint8_t m)){
         uint8_t first = read(++PC);
         uint8_t second = read(++PC);
         uint16_t address = (first << 8) << second; 
         operation(address);
     }
 
-    void zp(void (*operation)(uint16_t address)){
-        uint16_t address = read(++PC); 
-        operation(address);
+    void zp(void (*operation)(uint8_t m)){
+        uint8_t m = read(++PC); 
+        operation(m);
     }
 
-    void zpx(void (*operation)(uint16_t address)){
-        uint16_t result = read(++PC) + X;
-        operation((uint16_t)(uint8_t) result);
+    void zpx(void (*operation)(uint8_t address)){
+        uint8_t m = read(++PC) + X;
+        operation(m);
     }
 
-    void zpy(void (*operation)(uint16_t address)){
-        uint16_t result = read(++PC) + Y;
-        operation((uint16_t)(uint8_t) result);
+    void zpy(void (*operation)(uint8_t address)){
+        uint8_t m = read(++PC) + Y;
+        operation(m);
     }
 
-    void absx(void (*operation)(uint16_t address)){
+    void absx(void (*operation)(uint8_t address)){
         uint8_t first = read(++PC);
         uint8_t second = read(++PC);
         uint16_t address = (first << 8) | second;
@@ -473,32 +512,25 @@ namespace CPU6502{
         operation(m);
     }
 
-    void indexIndirX(void (*operation)(uint8_t m)){
+    void indirectX(void (*operation)(uint8_t m)){
         uint16_t indAddress = read(++PC) + X; 
         uint16_t m = read(read(indAddress + 1) << 8 | read(indAddress));
         operation(m);
     }
 
-    void indexIndirY(void (*operation)(uint8_t m)){
-        uint16_t indAddress = read(++PC) + Y; 
-        uint16_t m = read(read(indAddress + 1) << 8 | read(indAddress));
-        operation(m);
-    }
-
-    void indirIndexX(void (*operation)(uint8_t m)){
-        uint8_t first = read(++PC);
-        uint8_t second = read(++PC);
-        uint16_t indAddress = (first << 8) | second; 
-        uint16_t m = read(read(indAddress + 1) << 8 | read(indAddress) + X);
-        operation(m);
-    }
-
-    void indirIndexY(void (*operation)(uint8_t m)){
+    void indirectY(void (*operation)(uint8_t m)){
         uint8_t first = read(++PC);
         uint8_t second = read(++PC);
         uint16_t indAddress = (first << 8) | second; 
         uint16_t m = read(read(indAddress + 1) << 8 | read(indAddress) + Y);
         operation(m);
+    }
+
+    void relative(void (*operation)(uint8_t m)){
+        PC += 2;
+        uint16_t address = PC;
+        if(address & 0x80){address = ~(address) + 1;}
+        operation(address);
     }
 
 }
