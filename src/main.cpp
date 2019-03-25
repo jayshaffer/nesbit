@@ -9,5 +9,7 @@
 using namespace std;
 
 int main(int argc, char* argv[]){
-  ROM::load('donkeykong.nes');
+  ROM::load("donkeykong.nes");
+  CPU6502::reset();
+  CPU6502::power();
 }
