@@ -72,7 +72,7 @@ TEST_CASE( "SBC with carry resulting in no carry or overflow"){
     uint16_t m = 1;
     CPU6502::sbc(&m);
     REQUIRE(CPU6502::A == 0xFE);
-    REQUIRE( CPU6502::C_flag == 1);
+    REQUIRE( CPU6502::C_flag == 0);
     REQUIRE( CPU6502::V_flag == 0);
 }
 

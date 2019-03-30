@@ -142,14 +142,14 @@ namespace CPU6502{
     const uint8_t NOP = 0xEA;
 
     //ORA
-    const uint8_t ORS_I = 0x09;
-    const uint8_t ORS_ZP = 0x05;
-    const uint8_t ORS_ZP_X = 0x15;
-    const uint8_t ORS_ABS = 0x0D;
-    const uint8_t ORS_ABS_X = 0x1D;
-    const uint8_t ORS_ABS_Y = 0x19;
-    const uint8_t ORS_IND_X = 0x01;
-    const uint8_t ORS_IND_Y = 0x11;
+    const uint8_t ORA_I = 0x09;
+    const uint8_t ORA_ZP = 0x05;
+    const uint8_t ORA_ZP_X = 0x15;
+    const uint8_t ORA_ABS = 0x0D;
+    const uint8_t ORA_ABS_X = 0x1D;
+    const uint8_t ORA_ABS_Y = 0x19;
+    const uint8_t ORA_IND_X = 0x01;
+    const uint8_t ORA_IND_Y = 0x11;
 
     //Register instructions
     const uint8_t TAX = 0xAA;
@@ -260,8 +260,8 @@ namespace CPU6502{
     void cpx(uint16_t* m);
     void cpy(uint16_t* m);
     void dec(uint16_t* m);
-    void dex(uint16_t* m);
-    void dey(uint16_t* m);
+    void dex();
+    void dey();
     void eor(uint16_t* m);
     void inc(uint16_t* m);
     void inx();
@@ -296,4 +296,5 @@ namespace CPU6502{
     void txa();
     void txs();
     void tya();
+    void cld();
 };

@@ -31,7 +31,27 @@ namespace CPU6502{
     void (*const asl_p)(uint16_t* m) = asl;
     void (*const jsr_p)(uint16_t* m) = jsr;
     void (*const bit_p)(uint16_t* m) = bit;
-
+    void (*const rol_p)(uint16_t* m) = rol;
+    void (*const lsr_p)(uint16_t* m) = lsr;
+    void (*const eor_p)(uint16_t* m) = eor;
+    void (*const bvc_p)(uint16_t* m) = bvc;
+    void (*const ror_p)(uint16_t* m) = ror;
+    void (*const bpl_p)(uint16_t* m) = bpl;
+    void (*const bmi_p)(uint16_t* m) = bmi;
+    void (*const bvs_p)(uint16_t* m) = bvs;
+    void (*const bcc_p)(uint16_t* m) = bcc;
+    void (*const bcs_p)(uint16_t* m) = bcs;
+    void (*const bne_p)(uint16_t* m) = bne;
+    void (*const beq_p)(uint16_t* m) = beq;
+    void (*const sta_p)(uint16_t* m) = sta;
+    void (*const lda_p)(uint16_t* m) = lda;
+    void (*const ldx_p)(uint16_t* m) = ldx;
+    void (*const cpy_p)(uint16_t* m) = cpy;
+    void (*const cmp_p)(uint16_t* m) = cmp;
+    void (*const dec_p)(uint16_t* m) = dec;
+    void (*const sbc_p)(uint16_t* m) = sbc;
+    void (*const cpx_p)(uint16_t* m) = cpx;
+    void (*const inc_p)(uint16_t* m) = inc;
 
     uint8_t* read(uint16_t address){
         uint8_t m;
@@ -105,7 +125,7 @@ namespace CPU6502{
                 immediate(ora_p);
                 break;
             case 0x10:
-                relative(bpl);
+                relative(bpl_p);
                 break;
             case 0x11:
                 indirectY(ora_p);
@@ -122,6 +142,12 @@ namespace CPU6502{
             case 0x19:
                 absy(ora_p);
                 break;
+            case 0x1d:
+                absx(ora_p);
+                break;
+            case 0x1e:
+                absx(asl_p);
+                break;
             case 0x20:
                 abs(jsr_p);
                 break;
@@ -131,6 +157,357 @@ namespace CPU6502{
             case 0x24:
                 abs(bit_p);
                 break;
+            case 0x25:
+                zp(and_p);
+                break;
+            case 0x26:
+                zp(rol_p);
+                break;
+            case 0x28:
+                plp();
+                break;
+            case 0x29:
+                immediate(and_p);
+                break;
+            case 0x2d:
+                abs(and_p);
+                break;
+            case 0x2e:
+                abs(rol_p);
+                break;
+            case 0x30:
+                relative(bmi_p);
+                break;
+            case 0x31:
+                indirectY(and_p);
+                break;
+            case 0x35:
+                zpx(and_p);
+                break;
+            case 0x36:
+                zpx(rol_p);
+                break;
+            case 0x38:
+                sec();
+                break;
+            case 0x39:
+                absy(and_p);
+                break;
+            case 0x3d:
+                absx(and_p);
+                break;
+            case 0x3e:
+                absx(rol_p);
+                break;
+            case 0x40:
+                rti();
+                break;
+            case 0x41:
+                indirectX(eor_p);
+                break;
+            case 0x45:
+                zp(eor_p);
+                break;
+            case 0x46:
+                zp(lsr_p);
+                break;
+            case 0x48:
+                pha();
+                break;
+            case 0x49:
+                immediate(eor_p);
+                break;
+            case 0x4A:
+                break;
+            case 0x4c:
+                jmpA(instruction);
+                break;
+            case 0x4d:
+                abs(eor_p);
+                break;
+            case 0x4E:
+                abs(lsr_p);
+                break;
+            case 0x50:
+                relative(bvc_p);
+                break;
+            case 0x51:
+                indirectY(eor_p);
+                break;
+            case 0x55:
+                zpx(eor_p);
+                break;
+            case 0x56:
+                zpx(lsr_p);
+                break;
+            case 0x58:
+                cli();
+                break;
+            case 0x59:
+                absy(eor_p);
+                break;
+            case 0x5d:
+                absx(eor_p);
+                break;
+            case 0x5e:
+                absx(lsr_p);
+                break;
+            case 0x60:
+                rts();
+                break;
+            case 0x61:
+                indirectX(adc_p);
+                break;
+            case 0x65:
+                zp(adc_p);
+                break;
+            case 0x66:
+                zp(ror_p);
+                break;
+            case 0x69:
+                pla();
+                break;
+            case 0x6a:
+                break;
+            case 0x6c:
+                jmpI(instruction);
+                break;
+            case 0x6d:
+                abs(adc_p);
+                break;
+            case 0x6e:
+                abs(ror_p);
+                break;
+            case 0x70:
+                relative(bvs_p);
+                break;
+            case 0x71:
+                indirectY(adc_p);
+                break;
+            case 0x75:
+                zpx(adc_p);
+                break;
+            case 0x76:
+                zpx(ror_p);
+                break;
+            case 0x78:
+                sei();
+                break;
+            case 0x79:
+                absy(adc_p);
+                break;
+            case 0x7d:
+                absx(adc_p);
+                break;
+            case 0x7e:
+                absx(ror_p);
+                break;
+            case 0x81:
+                indirectX(sta_p);
+                break;
+            case 0x85:
+                zp(sta_p);
+                break;
+            case 0x88:
+                dey();
+                break;
+            case 0x8a:
+                txa();
+                break;
+            case 0x8d:
+                abs(sta_p);
+                break;
+            case 0x90:
+                relative(bcc_p);
+                break;
+            case 0x91:
+                indirectY(sta_p);
+                break;
+            case 0x95:
+                zpx(sta_p);
+                break;
+            case 0x98:
+                tya();
+                break;
+            case 0x99:
+                absy(sta_p);
+                break;
+            case 0x9a:
+                txs();
+                break;
+            case 0x9d:
+                absx(sta_p);
+                break;
+            case 0xa1:
+                indirectX(lda_p);
+                break;
+            case 0xa2:
+                immediate(ldx_p);
+                break;
+            case 0xa5:
+                zp(lda_p);
+                break;
+            case 0xa6:
+                zp(ldx_p);
+                break;
+            case 0xa8:
+                tay();
+                break;
+            case 0xa9:
+                immediate(lda_p);
+                break;
+            case 0xaa:
+                tax();
+                break;
+            case 0xad:
+                abs(lda_p);
+                break;
+            case 0xae: 
+                abs(ldx_p);
+                break;
+            case 0xb0:
+                relative(bcs_p);
+                break;
+            case 0xb1:
+                indirectY(lda_p);
+                break;
+            case 0xb5:
+                zpx(lda_p);
+                break;
+            case 0xb6:
+                zpy(ldx_p);
+                break;
+            case 0xb8:
+                clv();
+                break;
+            case 0xb9:
+                absy(lda_p);
+                break;
+            case 0xba:
+                tsx();
+                break;
+            case 0xbd:
+                absx(lda_p);
+                break;
+            case 0xbe:
+                absy(ldx_p);
+                break;
+            case 0xc0:
+                immediate(cpy_p);
+                break;
+            case 0xc1:
+                indirectX(cmp_p);
+                break;
+            case 0xc4:
+                zp(cpy_p);
+                break;
+            case 0xc5:
+                zp(cmp_p);
+                break;
+            case 0xc6:
+                zp(dec_p);
+                break;
+            case 0xc8:
+                iny();
+                break;
+            case 0xc9:
+                immediate(cmp_p);
+                break;
+            case 0xca:
+                dex();
+                break;
+            case 0xcc:
+                abs(cpy_p);
+                break;
+            case 0xcd:
+                abs(cmp_p);
+                break;
+            case 0xce:
+                abs(dec_p);
+                break;
+            case 0xd0:
+                relative(bne_p);
+                break;
+            case 0xd1:
+                indirectY(cmp_p);
+                break;
+            case 0xd5:
+                zpx(cmp_p);
+                break;
+            case 0xd6:
+                zpx(dec_p);
+                break;
+            case 0xd8:
+                cld();
+                break;
+            case 0xd9:
+                absy(cmp_p);
+                break;
+            case 0xdd:
+                absx(cmp_p);
+                break;
+            case 0xde:
+                absx(dec_p);
+                break;
+            case 0xe0:
+                immediate(cpy_p);
+                break;
+            case 0xe1:
+                indirectX(sbc_p);
+                break;
+            case 0xe4:
+                zp(cpx_p);
+                break;
+            case 0xe5:
+                zp(sbc_p);
+                break;
+            case 0xe6:
+                zp(inc_p);
+                break;
+            case 0xe8:
+                inx();
+                break;
+            case 0xe9:
+                immediate(sbc_p);
+                break;
+            case 0xea:
+                nop();
+                break;
+            case 0xec:
+                abs(cpx_p);
+                break;
+            case 0xed:
+                abs(sbc_p);
+                break;
+            case 0xee:
+                abs(inc_p);
+                break;
+            case 0xf0:
+                relative(beq);
+                break;
+            case 0xf1:
+                indirectY(sbc_p);
+                break;
+            case 0xf5:
+                zpx(sbc_p);
+                break;
+            case 0xf6:
+                zpx(inc_p);
+                break;
+            case 0xf8:
+                sed();
+                break;
+            case 0xf9:
+                absy(sbc_p);
+                break;
+            case 0xfd:
+                absx(sbc_p);
+                break;
+            case 0xfe:
+                absx(inc_p);
+                break;
+            default:
+                throw std::invalid_argument( "Invalid instruction received" );
         }
         PC++;
     }
@@ -297,11 +674,11 @@ namespace CPU6502{
         N_flag = neg(Y);
     }
 
-    void jmpA(uint16_t m){
+    void jmpA(uint8_t m){
         PC = m;
     }
 
-    void jmpI(uint16_t m){
+    void jmpI(uint8_t m){
         PC = *read(m);
     }
 
